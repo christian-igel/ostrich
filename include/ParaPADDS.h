@@ -18,6 +18,8 @@ Version History
 // parent class
 #include "AlgorithmABC.h"
 
+#include <vector>
+
 // forward decs
 class ModelABC;
 
@@ -34,7 +36,7 @@ class ParaPADDS : public AlgorithmABC
       void Calibrate(void);
       void Destroy(void);
       void WriteMetrics(FILE * pFile);
-      void WarmStart(void){ return;}
+    void WarmStart(void) { return; };
       int  GetCurrentIteration(void) { return m_CurIter; }
 
    private:
@@ -59,6 +61,8 @@ class ParaPADDS : public AlgorithmABC
       int bool_vec_to_ulong(bool * pB, int size);
       void ulong_to_bool_vec(int val, bool * pB, int size);
 
+      std::vector<std::vector<double> > readOstNonDomSolutionsFile(const char *fn);
+  
       ModelABC * m_pModel;
       ArchiveStruct * m_pNonDom; //non-dominated solutions
       ArchiveStruct * m_pDom; //dominated solutions
@@ -77,6 +81,7 @@ class ParaPADDS : public AlgorithmABC
       int m_maxiter; //number of total objective function evaluation
       int m_num_dec; //number of decesion variables (depends on the objective functions and the problem we are solving)
       int m_num_objs; //number of objective functions
+      char *m_WarmStartFile; //file to read initial data from
       //selection metric
       //0: Random
       //1: Crowding distance

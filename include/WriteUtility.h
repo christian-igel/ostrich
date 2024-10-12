@@ -13,6 +13,7 @@ Version History
 01-28-05    lsm   Added support for tracking algorithm status (used in 
                   grid-computing). Added WriteGrid()
 01-01-07    lsm   upped version, added support for ModelABC
+10-10-24    ci    Added index to WriteMultiObjOptimal
 ******************************************************************************/
 #ifndef WRITE_UTILITY_H
 #define WRITE_UTILITY_H
@@ -40,7 +41,7 @@ void WriteRecord(ModelABC * pModel, int iter, double fx, double dx);
 void WriteRecordToFile(FILE * pFile, ModelABC * pModel, int iter, double fx, double dx);
 void WriteStatus(StatusStruct * pStatus);
 
-void WriteMultiObjOptimal(ModelABC * pModel, ArchiveStruct * pNonDom, ArchiveStruct * pDom);
+void WriteMultiObjOptimal(ModelABC * pModel, ArchiveStruct * pNonDom, ArchiveStruct * pDom, int index=-1);
 void WriteMultiObjOptimalToFile(FILE * pFile, ModelABC * pModel, ArchiveStruct * pNonDom, ArchiveStruct * pDom);
 
 void WriteOptimal(ModelABC * pModel, double fx);
