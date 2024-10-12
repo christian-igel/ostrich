@@ -40,7 +40,7 @@ GCC_MPI:	$(SRC_FILES_CPP) $(SRC_FILES_C)
 	rm -f *.o
 
 clang_MPI:	$(SRC_FILES_CPP) $(SRC_FILES_C)
-	mpicxx -std=c++17 -I$(INCLUDE_DIR) $(SRC_FILES_CPP) -ldl -o OstrichMPI
+	mpicxx -std=c++17 -Wno-deprecated -Wno-unused-value -Wno-empty-body -I$(INCLUDE_DIR) $(SRC_FILES_CPP) -ldl -o OstrichMPI
 	rm -f *.o
 
 ICC:	$(SRC_FILES_CPP) $(SRC_FILES_C)
