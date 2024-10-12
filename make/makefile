@@ -22,6 +22,7 @@ all:
 	-@ echo "   GCC : Serial compile with GCC compiler stack"
 	-@ echo "   ICC_MPI : MPI compile with Intel compiler stack"
 	-@ echo "   GCC_MPI : MPI compile with GCC compiler stack"
+	-@ echo "   clang_MPI : MPI compile with clang compiler stack"
 	-@ echo "   GCC_DB : Serial compile with GCC compiler stack with disk based MPI"
 	-@ echo "   ICC_DB : Serial compile with Intel compiler stack with disk based MPI"
 	-@ echo ""
@@ -36,6 +37,10 @@ ICC_MPI:	$(SRC_FILES_CPP) $(SRC_FILES_C)
 
 GCC_MPI:	$(SRC_FILES_CPP) $(SRC_FILES_C)
 	mpigxx -std=c++17 -I$(INCLUDE_DIR) $(SRC_FILES_CPP) -ldl -lstdc++fs -o OstrichMPI 
+	rm -f *.o
+
+clang_MPI:	$(SRC_FILES_CPP) $(SRC_FILES_C)
+	mpicxx -std=c++17 -I$(INCLUDE_DIR) $(SRC_FILES_CPP) -ldl -o OstrichMPI
 	rm -f *.o
 
 ICC:	$(SRC_FILES_CPP) $(SRC_FILES_C)
