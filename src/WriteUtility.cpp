@@ -15,6 +15,7 @@ Version History
 01-18-05    lsm   upped version, added support for GCOP
 01-01-07    lsm   upped version, added support for ModelABC
 06-22-07    lsm   added dual-Langmuir isotherm, upped version to 1.3
+10-12-24    ci    added index to output filename
 ******************************************************************************/
 #include <mpi.h>
 #include <string.h>
@@ -400,8 +401,9 @@ WriteMultiObjOptimal()
 
 Write out final set of dominated and non-dominated solutions for a multi-
 objective application.
+[CI]: Added index, defaults to -1
 ******************************************************************************/
-void WriteMultiObjOptimal(ModelABC * pModel, ArchiveStruct * pNonDom, ArchiveStruct * pDom)
+void WriteMultiObjOptimal(ModelABC * pModel, ArchiveStruct * pNonDom, ArchiveStruct * pDom, int index)
 {
    FILE * pFile;
    char fileName[DEF_STR_SZ];
@@ -411,7 +413,14 @@ void WriteMultiObjOptimal(ModelABC * pModel, ArchiveStruct * pNonDom, ArchiveStr
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
    MPI_Comm_rank(MPI_COMM_WORLD, &id);
 
-   sprintf(fileName, "OstOutput%d.txt", id);
+   if(index == -1) {
+       sprintf(fileName, "OstOutput%d.txt", id);
+       pFile = fopen(fileName, "a");
+   }
+   else {
+       sprintf(fileName, "OstOutput%d_%d.txt", id, index);
+       pFile = fopen(fileName, "w");
+   }
 
    pFile = fopen(fileName, "a");
    WriteMultiObjOptimalToFile(pFile, pModel, pNonDom, pDom);

@@ -55,6 +55,11 @@ for a description of the algorithm:
 #include <mpi.h>
 #include <string.h>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
 #include "ParaPADDS.h"
 #include "Model.h"
 #include "ParameterGroup.h"
@@ -64,6 +69,8 @@ for a description of the algorithm:
 #include "Utility.h"
 #include "WriteUtility.h"
 #include "Exception.h"
+
+using namespace std;
 
 /******************************************************************************
 CTOR
@@ -91,6 +98,7 @@ ParaPADDS::ParaPADDS(ModelABC * pModel)
    m_dSqrtDataNumber = 0;
    m_volume = 0;
    m_stest_flat = NULL;
+   m_WarmStartFile = NULL;
 
    #if(PARA_PADDS_DEBUG == 1)
       printf("Created ParaPADDS instance\n");
@@ -128,6 +136,7 @@ void ParaPADDS::Destroy(void)
    }
 
    delete [] m_stest_flat;
+   if(m_WarmStartFile) delete [] m_WarmStartFile;
 
    #if(PARA_PADDS_DEBUG == 1)
       printf("Destroyed ParaPADDS instance\n");
@@ -287,6 +296,13 @@ void ParaPADDS::InitFromFile(IroncladString pFileName)
             else if(strcmp(tmp, "exacthypervolumecontribution") == 0) m_Select_metric = 3; 
             else m_Select_metric = 3; //make "exact" the default
          }
+         else if(strstr(line, "WarmStartFile") != NULL)
+         {
+            MyStrLwr(tmp);
+            sscanf(line, "WarmStartFile %s", tmp);
+            m_WarmStartFile = new char[DEF_STR_SZ];
+            strcpy(m_WarmStartFile, tmp);
+         }
          line = GetNxtDataLine(pFile, pFileName);
       } /* end while() */
    }/* end if() */   
@@ -394,12 +410,12 @@ void ParaPADDS::Optimize(void)
    #endif
 
    //master section of code
+   unsigned ndom_init = 0; // home many solutions are read from a file
    int master = 0;
    int num_sent = 0; //messages sent
    int num_rcvd = 0; //messages received
    if (m_rank == master)
    {
-
       pPnFile = fopen("OstPADDSPn.txt", "w");
       fprintf(pPnFile, "EVAL  Pn\n");
       fclose(pPnFile);
@@ -414,6 +430,15 @@ void ParaPADDS::Optimize(void)
          fflush(stdout);
       #endif
   
+      std::vector<std::vector<double> > solutions;
+       if(m_pModel->CheckWarmStart() == true) {
+           solutions = readOstNonDomSolutionsFile(m_WarmStartFile);
+           ndom_init = solutions.size();
+           if(ndom_init > its) its = ndom_init;
+           printf("[CI] We are doing a warmstart with %d solutions from file %s\n", ndom_init, m_WarmStartFile)
+           fflush(stdout);
+      }
+       
       //must send 1 work message per iteration plus 1 stop work message per slave
       WriteInnerEval(WRITE_DDS, 0, '.');
       for(num_sent = 0; num_sent <= (m_maxiter + nslaves); num_sent++)
@@ -515,6 +540,7 @@ void ParaPADDS::Optimize(void)
                      fflush(stdout);
                   #endif
                   WriteMultiObjRecord(m_pModel, num_rcvd, m_pNonDom, (double)(m_maxiter-num_rcvd));
+                  WriteMultiObjOptimal(m_pModel, m_pNonDom, m_pDom, num_rcvd);
                }
             }/* end if() */
             else //receiving search results
@@ -551,6 +577,7 @@ void ParaPADDS::Optimize(void)
                   sbest_dominates_stest = true;
                   m_dominance_flag = -1;
                   UpdateArchive(stest->X, stest->nX, stest->F, stest->nF);
+                  WriteMultiObjOptimal(m_pModel, m_pNonDom, m_pDom, num_rcvd);
                }/* new solution not dominated by sbest, but what about others in the archive? */
                else
                {
@@ -615,6 +642,7 @@ void ParaPADDS::Optimize(void)
                            WriteInnerEval(WRITE_DDS, 0, '.');
                         }
                         bBanner = true;
+                        WriteMultiObjOptimal(m_pModel, m_pNonDom, m_pDom, num_rcvd);
                      }
                      else
                      {
@@ -685,11 +713,19 @@ void ParaPADDS::Optimize(void)
             ------------------------------------------------------------------- */
             if(num_sent < its) //sending intitialization tasks
             {
-               //generate a new random candidate
-               for (int j = 0; j < m_num_dec; j++)
-               {
-                  m_stest_flat[j] = S_min[j] + (S_max[j] - S_min[j])*UniformRandom();
-               }/* end for() */
+                if(num_sent < ndom_init) {
+                    //solutions read form file
+                    for (int j = 0; j < m_num_dec; j++) {
+                        m_stest_flat[j] = solutions[num_sent][j];
+                    }
+                }
+                else {
+                    //generate a new random candidate
+                    for (int j = 0; j < m_num_dec; j++)
+                    {
+                        m_stest_flat[j] = S_min[j] + (S_max[j] - S_min[j])*UniformRandom();
+                    }/* end for() */
+                }
             }/* end if() */
             else //sending search tasks
             {
@@ -2093,3 +2129,43 @@ void PARA_PADDS_Program(int argC, StringType argV[])
    delete TheAlg;
    delete model;
 } /* end PARA_PADDS_Program() */
+
+/******************************************************************************
+PARA_PADDS_readOstNonDomSolutionsFile()
+
+[CI] Read initial solutions from file.
+******************************************************************************/
+vector<vector<double> > ParaPADDS::readOstNonDomSolutionsFile(const char *fn) {
+    ifstream file;
+    string line;
+    double dummy;
+    double x;
+    
+    vector<vector<double> > solutions;
+    
+    unsigned count = 0; // number of lines in file
+    file.exceptions ( ifstream::badbit ); // No need to check failbit
+    try {
+        file.open(fn);
+        while(getline(file, line))   {
+            count++;
+            if(count < 4) continue;  // skip first three lines
+            stringstream iss(line);
+            iss >> dummy; // skip generation
+            for(unsigned i=0;i<m_num_objs;i++) { // skip objective function values
+                iss >> dummy;
+            }
+            vector<double> v(m_num_dec);
+            for(unsigned i=0;i<m_num_dec;i++) {
+                iss >> v[i];
+            }
+            solutions.push_back(v);
+        }
+    }
+    catch (const ifstream::failure& e) {
+        cerr << "[CI] Exception opening/reading file " << fn;
+    }
+
+    file.close();
+    return solutions;
+}
