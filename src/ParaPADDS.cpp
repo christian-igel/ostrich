@@ -431,12 +431,12 @@ void ParaPADDS::Optimize(void)
       #endif
   
       std::vector<std::vector<double> > solutions;
-       if(m_pModel->CheckWarmStart() == true) {
-           solutions = readOstNonDomSolutionsFile(m_WarmStartFile);
-           ndom_init = solutions.size();
-           if(ndom_init > its) its = ndom_init;
-           printf("[CI] We are doing a warmstart with %d solutions from file %s\n", ndom_init, m_WarmStartFile)
-           fflush(stdout);
+      if(m_pModel->CheckWarmStart() == true) {
+          solutions = readOstNonDomSolutionsFile(m_WarmStartFile);
+          ndom_init = solutions.size();
+          if(ndom_init > its) its = ndom_init;
+          printf("[CI] We are doing a warmstart with %d solutions from file %s\n", ndom_init, m_WarmStartFile);
+          fflush(stdout);
       }
        
       //must send 1 work message per iteration plus 1 stop work message per slave

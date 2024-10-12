@@ -1,10 +1,11 @@
 ProgramType ParaPADDS
+#ProgramType PADDS
 
 ModelExecutable ./f_simple.py
 ModelSubdir model
 ObjectiveFunction GCOP
 RandomSeed 42
-OstrichWarmStart no
+OstrichWarmStart yes
 
 #Template File Configuration
 BeginFilePairs
@@ -33,8 +34,8 @@ BeginConstraints
 EndConstraints
 
 BeginParaPADDS
-  MaxIterations 100
+  MaxIterations 1000
   PerturbationValue 0.1
   SelectionMetric ExactHyperVolumeContribution
-  WarmStartFile opt_init.txt
+  WarmStartFile OstNonDomSolutions0_warmstart.txt
 EndParaPADDS
