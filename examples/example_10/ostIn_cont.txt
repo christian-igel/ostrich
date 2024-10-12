@@ -1,0 +1,41 @@
+ProgramType ParaPADDS
+#ProgramType PADDS
+
+ModelExecutable ./f_simple.py
+ModelSubdir model
+ObjectiveFunction GCOP
+RandomSeed 42
+OstrichWarmStart yes
+
+#Template File Configuration
+BeginFilePairs
+  in.tpl ; in.csv
+EndFilePairs
+
+#Real-valued Parameters
+BeginParams
+X1 random -1.0 1.0 none none none
+X2 random -1.0 1.0 none none none
+EndParams
+
+BeginResponseVars
+#name   filename      key line    col     token augmented?
+F1      f_simple.out ; F1    0      2       '='    no
+F2      f_simple.out ; F2    0      2       '='    no
+EndResponseVars
+
+BeginGCOP
+  CostFunction F1
+  CostFunction F2
+EndGCOP
+
+BeginConstraints
+  #name type     conv.fact  lower   upper  resp.var 
+EndConstraints
+
+BeginParaPADDS
+  MaxIterations 1000
+  PerturbationValue 0.1
+  SelectionMetric ExactHyperVolumeContribution
+  WarmStartFile OstNonDomSolutions0_warmstart.txt
+EndParaPADDS
