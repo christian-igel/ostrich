@@ -10,7 +10,7 @@ Version History
 ******************************************************************************/
 #include "ADOConnection.h"
 
-#ifdef _WIN32
+#if USE_ADO
 #include <string>
 #include <iostream>
 using namespace std;
