@@ -44,6 +44,7 @@ Version History
 
 #ifdef _WIN32
   #include <string>
+  #include "profileapi.h"
   using namespace std;
 #endif
 
