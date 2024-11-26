@@ -175,7 +175,8 @@ void Model::PreserveModel(int rank, int trial, int counter, IroncladString ofcat
 
       // Move the files from the worker to the archive
       // TODO: Add an exclude operation to prevent copying unnecessary files
-      std::filesystem::copy(std::filesystem::current_path(), directory, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+      std::filesystem::copy(std::filesystem::current_path(), directory,
+                            std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 
       // Cleanup the worker
       m_pFileCleanupList->Cleanup(directory);
@@ -536,7 +537,8 @@ Model::Model(void)
              std::filesystem::path sourcePath = std::filesystem::current_path() /= tmp1;
 
              // Copy the files
-             std::filesystem::copy(sourcePath, workerPath, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+             std::filesystem::copy(sourcePath, workerPath,
+                                   std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 
              // Get a list of files in the source directory
              std::vector<std::string> sourceFiles;
