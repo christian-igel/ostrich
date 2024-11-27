@@ -718,6 +718,12 @@ void ParaPADDS::Optimize(void)
                     for (int j = 0; j < m_num_dec; j++) {
                         m_stest_flat[j] = solutions[num_sent][j];
                     }
+                    printf("[CI] We are revaluating solution %d read from warmstart file: ", num_sent);
+                    for (int j = 0; j < m_num_dec; j++) {
+                        printf("%f ", m_stest_flat[j]);
+                    }
+                    printf("\n");
+                    fflush(stdout);
                 }
                 else {
                     //generate a new random candidate
