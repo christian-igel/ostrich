@@ -525,20 +525,20 @@ Model::Model(void)
 
          // Move all entries in the directory
          if(pDirName[0] != '.') {
-             // Construct the worker path 
+             // Construct the worker path and the path to the source
+             std::filesystem::path sourcePath = std::filesystem::current_path() /= tmp1;
              std::filesystem::path workerPath = std::filesystem::current_path() /= std::string(pDirName);
              workerPath /= tmp1;
 
-             if (~std::filesystem::exists(workerPath)) {
+             if (!std::filesystem::exists(workerPath)) {
                  std::filesystem::create_directories(workerPath);
              }
 
-             // Construct the path to the source source
-             std::filesystem::path sourcePath = std::filesystem::current_path() /= tmp1;
-
              // Copy the files
-             std::filesystem::copy(sourcePath, workerPath,
-                                   std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+             for (const auto& entry : std::filesystem::directory_iterator(sourcePath)) {
+                 std::filesystem::copy(entry.path(), workerPath / entry.path().filename(),
+                                       std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+             }
 
              // Get a list of files in the source directory
              std::vector<std::string> sourceFiles;
