@@ -17,6 +17,7 @@ Version History
 
 // parent class
 #include "AlgorithmABC.h"
+#include "ParameterGroup.h"
 
 #include <vector>
 
@@ -36,7 +37,7 @@ class ParaPADDS : public AlgorithmABC
       void Calibrate(void);
       void Destroy(void);
       void WriteMetrics(FILE * pFile);
-    void WarmStart(void) { return; };
+      void WarmStart(void) { return; };
       int  GetCurrentIteration(void) { return m_CurIter; }
 
    private:
@@ -61,7 +62,7 @@ class ParaPADDS : public AlgorithmABC
       int bool_vec_to_ulong(bool * pB, int size);
       void ulong_to_bool_vec(int val, bool * pB, int size);
 
-      std::vector<std::vector<double> > readOstNonDomSolutionsFile(const char *fn);
+      std::vector<std::vector<double> > readOstNonDomSolutionsFile(const char *fn, ParameterGroup *pGroup);
   
       ModelABC * m_pModel;
       ArchiveStruct * m_pNonDom; //non-dominated solutions

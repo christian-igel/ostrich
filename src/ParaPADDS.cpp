@@ -432,7 +432,7 @@ void ParaPADDS::Optimize(void)
   
       std::vector<std::vector<double> > solutions;
       if(m_pModel->CheckWarmStart() == true) {
-          solutions = readOstNonDomSolutionsFile(m_WarmStartFile);
+          solutions = readOstNonDomSolutionsFile(m_WarmStartFile, pGroup);
           ndom_init = solutions.size();
           if(ndom_init > its) its = ndom_init;
           printf("[CI] We are doing a warmstart with %d solutions from file %s\n", ndom_init, m_WarmStartFile);
@@ -2141,11 +2141,12 @@ PARA_PADDS_readOstNonDomSolutionsFile()
 
 [CI] Read initial solutions from file.
 ******************************************************************************/
-vector<vector<double> > ParaPADDS::readOstNonDomSolutionsFile(const char *fn) {
+vector<vector<double> > ParaPADDS::readOstNonDomSolutionsFile(const char *fn, ParameterGroup *pGroup) {
     ifstream file;
     string line;
     double dummy;
     double x;
+    string type;
     
     vector<vector<double> > solutions;
     
@@ -2163,7 +2164,8 @@ vector<vector<double> > ParaPADDS::readOstNonDomSolutionsFile(const char *fn) {
             }
             vector<double> v(m_num_dec);
             for(unsigned i=0;i<m_num_dec;i++) {
-                iss >> v[i];
+                iss >> dummy;
+                v[i] = pGroup->GetParamPtr(i)->ConvertInVal(dummy);
             }
             solutions.push_back(v);
         }
