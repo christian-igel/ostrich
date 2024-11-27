@@ -55,6 +55,7 @@ Version History
 #include <math.h>
 #include <string.h>
 #include <string>
+#include <iostream>
 #include <filesystem>
 
 #include "Model.h"
@@ -297,9 +298,13 @@ Model::Model(void)
    {
       MPI_Comm_rank(MPI_COMM_WORLD, &id);
       sprintf(tmp1, "%d", id);
-      strcat(pDirName, tmp1);      
-      sprintf(tmp1, "mkdir %s", pDirName);
-      system(tmp1);      
+      strcat(pDirName, tmp1);
+       
+      std::filesystem::path workerPath = std::filesystem::current_path() /= std::string(pDirName);
+      
+      if (!std::filesystem::exists(workerPath)) {
+           std::filesystem::create_directories(workerPath);
+      }   
    }/* end if() */
 
    /*
@@ -529,7 +534,7 @@ Model::Model(void)
              std::filesystem::path workerPath = std::filesystem::current_path() /= std::string(pDirName);
              workerPath /= tmp1;
 
-             if (~std::filesystem::exists(workerPath)) {
+             if (!std::filesystem::exists(workerPath)) {
                  std::filesystem::create_directories(workerPath);
              }
 
